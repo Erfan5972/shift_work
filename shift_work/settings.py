@@ -39,6 +39,11 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
 
+    'driver.apps.DriverConfig',
+    'group_driver.apps.GroupDriverConfig',
+    'car.apps.CarConfig',
+    'group_car.apps.GroupCarConfig',
+    'shift.apps.ShiftConfig',
 ]
 
 MIDDLEWARE = [
