@@ -1,7 +1,7 @@
-from django.core.exceptions import ValidationError
 from django.db.models import Q
 
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 
 from shift.models import ShiftWork
 from driver.models import Driver
@@ -52,9 +52,9 @@ class ShiftWorksForDriverSerializer(serializers.Serializer):
                 serialized_data = ShiftWorkSerializer(queryset, many=True).data
                 return serialized_data
             else:
-                return "No shifts have been registered for this person"
+                raise ValidationError("No shifts have been registered for this person")
         except ShiftWork.DoesNotExist:
-            return "No shifts have been registered for this person"
+            raise ValidationError("No shifts have been registered for this person")
 
 
 class ShiftWorksAsDateSerializer(serializers.Serializer):
@@ -74,9 +74,9 @@ class ShiftWorksAsDateSerializer(serializers.Serializer):
             if queryset.exists():
                 srz_data = ShiftWorkSerializer(queryset, many=True).data
                 return srz_data
-            return 'nobody has not shift in this date'
+            raise ValidationError('nobody has not shift in this date')
         except ShiftWork.DoesNotExist:
-            return 'nobody has not shift in this date'
+            raise ValidationError('nobody has not shift in this date')
 
 
 class ShiftWorksAsDateTimeSerializer(serializers.Serializer):
@@ -96,6 +96,39 @@ class ShiftWorksAsDateTimeSerializer(serializers.Serializer):
             if queryset.exists():
                 srz_data = ShiftWorkSerializer(queryset, many=True).data
                 return srz_data
-            return 'Nobody has a shift at this date and time'
+            raise ValidationError('Nobody has a shift at this date and time')
         except ShiftWork.DoesNotExist:
-            return 'Nobody has a shift at this date and time'
+            raise ValidationError('Nobody has a shift at this date and time')
+
+
+
+class ShiftWorkAsDateTimeDriverSerializer(serializers.Serializer):
+    date = serializers.DateField(required=True)
+    time = serializers.TimeField()
+    driver_id = serializers.CharField(max_length=4)
+    driver = serializers.SerializerMethodField(read_only=True)
+
+    def get_driver(self, obj):
+        date = obj['date']
+        time = obj['time']
+        driver_id = obj['driver_id']
+        queryset = ShiftWork.objects.filter(
+            Q(
+                start_shift_date__lte=date,
+                start_shift_time__lte=time,
+                end_shift_date__gte=date,
+                end_shift_time__gte=time
+            ),
+            content_type__model='driver',
+            object_id=driver_id
+        )
+        if queryset.exists():
+            srz_data = ShiftWorkSerializer(queryset, many=True)
+            data = {
+                "shifts": srz_data.data,
+                "msg": "This driver has a shift at this time."
+            }
+            return data
+        raise ValidationError({
+            "driver_id": "This driver does not have a shift at this time."
+        })

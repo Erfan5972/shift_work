@@ -4,7 +4,7 @@ from rest_framework import status
 from shift.models import ShiftWork
 
 from .serializers import ShiftWorkSerializer, ShiftWorksForDriverSerializer, ShiftWorksAsDateSerializer,\
-    ShiftWorksAsDateTimeSerializer
+    ShiftWorksAsDateTimeSerializer, ShiftWorkAsDateTimeDriverSerializer
 
 
 class ShiftWorkViewSet(viewsets.ModelViewSet):
@@ -35,6 +35,16 @@ class ShiftWorksAsDateView(generics.GenericAPIView):
 class ShiftWorksAsDateTimeView(generics.GenericAPIView):
     queryset = ShiftWork.objects.all()
     serializer_class = ShiftWorksAsDateTimeSerializer
+
+    def post(self, request):
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        return Response(serializer.data, status.HTTP_200_OK)
+
+
+class ShiftWorkAsDateTimeDriverView(generics.GenericAPIView):
+    queryset = ShiftWork.objects.all()
+    serializer_class = ShiftWorkAsDateTimeDriverSerializer
 
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
