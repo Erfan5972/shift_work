@@ -79,19 +79,21 @@ class ShiftWorksAsDateSerializer(serializers.Serializer):
             raise ValidationError('nobody has not shift in this date')
 
 
+
 class ShiftWorksAsDateTimeSerializer(serializers.Serializer):
-    date = serializers.DateField()
+    input_date = serializers.DateField()
     time = serializers.TimeField()
     driver = serializers.SerializerMethodField(read_only=True)
 
     def get_driver(self, obj):
         try:
-            date = obj['date']
-            time = obj['time']
+            date = self.validated_data['input_date']
+            time = self.validated_data['time']
             queryset = ShiftWork.objects.filter(
-                Q(start_shift_date__lte=date, start_shift_time__lte=time,
-                    end_shift_date__gte=date, end_shift_time__gte=time),
-                content_type__model='driver',
+                Q(start_shift_date=date, end_shift_date=date) &
+                (Q(start_shift_time__lte=time, end_shift_time__gt=time) |
+                 Q(start_shift_time=None, end_shift_time=None)),
+                content_type__model='driver'
             )
             if queryset.exists():
                 srz_data = ShiftWorkSerializer(queryset, many=True).data
@@ -99,7 +101,6 @@ class ShiftWorksAsDateTimeSerializer(serializers.Serializer):
             raise ValidationError('Nobody has a shift at this date and time')
         except ShiftWork.DoesNotExist:
             raise ValidationError('Nobody has a shift at this date and time')
-
 
 
 class ShiftWorkAsDateTimeDriverSerializer(serializers.Serializer):

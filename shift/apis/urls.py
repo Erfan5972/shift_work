@@ -6,8 +6,6 @@ from .views import ShiftWorkViewSet, ShiftWorksForDriverView, ShiftWorksAsDateVi
 
 
 router = DefaultRouter()
-
-
 router.register('', ShiftWorkViewSet)
 
 urlpatterns = [
