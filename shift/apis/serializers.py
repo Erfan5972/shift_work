@@ -37,8 +37,8 @@ class ShiftWorkSerializer(serializers.ModelSerializer):
             if queryset.exists():
                 return attrs
             raise ValidationError("The group_driver with this id does not exist")
-        return attrs
-
+        else:
+            raise ValidationError("you must be select driver or car or group_driver or group_car")
 
 
 class ShiftWorksForDriverSerializer(serializers.Serializer):

@@ -9,16 +9,15 @@ class ShiftWork(models.Model):
                   ('b', 'week'),
                   ('c', 'month'),
                   )
-    name = models.CharField(max_length=100)
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    name = models.CharField(max_length=150)
     start_shift_time = models.TimeField(null=True, blank=True)
     start_shift_date = models.DateField()
     end_shift_time = models.TimeField(null=True, blank=True)
     end_shift_date = models.DateField()
     type = models.CharField(max_length=1, choices=TYPE_SHIFT)
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
     content_object = GenericForeignKey('content_type', 'object_id')
 
     def __str__(self):
         return f'{self.name}//{self.id}'
-
